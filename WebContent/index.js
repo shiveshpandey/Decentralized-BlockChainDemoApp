@@ -1,4 +1,9 @@
 let myName = ''
+//Remember that we are using ropsten for this application. Once completed we may deploy it to the mainnet for public use
+	window.web3 = new Web3(window.web3 ? window.web3.currentProvider : new Web3.providers.HttpProvider('https://ropsten.infura.io'))
+const contractABI = [{"constant":false,"inputs":[{"name":"_user","type":"address"}],"name":"followUser","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_name","type":"bytes32"},{"name":"_occupation","type":"bytes32"},{"name":"_bio","type":"string"}],"name":"setProfile","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_user","type":"address"}],"name":"unfollowUser","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_content","type":"string"}],"name":"writeMessage","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"messages","outputs":[{"name":"content","type":"string"},{"name":"writtenBy","type":"address"},{"name":"timestamp","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"uint256"}],"name":"userFollowers","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"userInfo","outputs":[{"name":"name","type":"bytes32"},{"name":"occupation","type":"bytes32"},{"name":"bio","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"uint256"}],"name":"userMessages","outputs":[{"name":"content","type":"string"},{"name":"writtenBy","type":"address"},{"name":"timestamp","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]
+const contractAddress = '0x01cd9f2cc6c288d7534c9f084e0c74dbb3ee82ba'
+const contractInstance = web3.eth.contract(contractABI).at(contractAddress)
 
 function start() {
     initMyProfile()
@@ -7,19 +12,20 @@ function start() {
 }
 
 function initMyProfile() {
-    let profileContent = ''
-    if(localStorage.myProfile === undefined) {
-        initDummyProfile()
-    } else {
-        let myProfile = JSON.parse(localStorage.myProfile)
-        myName = myProfile.name
-        profileContent += `
-            Name: <span id="my-name">${myProfile.name}</span> <br/>
-            Occupation: <span id="my-occupation">${myProfile.occupation}</span> <br/>
-            Bio: <span id="my-bio">${myProfile.bio}</span> <br/>
+	/*contractInstance.userInfo("0x6850B8a94E5ef160B03AA8Afa62BE76161EC3a3C", (err, myProfile) => {
+        if(err) return alert(err)
+        
+        let profileContent = ''
+        myName = web3.toUtf8(myProfile[0])
+        let myOccupation = web3.toUtf8(myProfile[1])
+        let myBio = myProfile[2]
+profileContent += `
+            Name: <span id="my-name">${myName}</span> <br/>
+            Occupation: <span id="my-occupation">${myOccupation}</span> <br/>
+            Bio: <span id="my-bio">${myBio}</span> <br/>
             <button id="set-profile-button" class="align-center" onclick="setProfile()">Set Profile</button>`
         document.querySelector('#profile-content').innerHTML = profileContent
-    }
+    })*/
 }
 
 function setProfile() {
@@ -37,12 +43,9 @@ function setProfile() {
 }
 
 function saveSetProfile(name, occupation, bio) {
-    localStorage.myProfile = JSON.stringify({
-        name: name,
-        occupation: occupation,
-        bio: bio
+    contractInstance.setProfile(name, occupation, bio, (err, result) => {
+        console.log(err, result)
     })
-    initMyProfile()
 }
 
 function cancelSetProfile() {
